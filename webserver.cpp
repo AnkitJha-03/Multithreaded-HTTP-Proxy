@@ -1,11 +1,14 @@
 #include <winsock2.h>
 #include <iostream>
+#include <thread>
+#include <atomic>
 
-#define PORT 8080
-#define WINSOCK_VERSION MAKEWORD(2,2)
-#define BUFFER_SIZE 1024
-#define PENDING_CONNECTIONS 10
-int connection_counter = 0;
+const int PORT = 8080;
+const int WINSOCK_VERS = MAKEWORD(2,2);
+const int BUFFER_SIZE = 1024;
+const int PENDING_CONNECTIONS = 10;
+
+std::atomic<int> connection_counter(0);
 
 // Function to handle client requests
 void HandleClient(SOCKET client_socket) {
@@ -47,7 +50,7 @@ void HandleClient(SOCKET client_socket) {
 
         // connection connection_counters with a delay
         connection_counter++;
-        std::cout << connection_counter << " is trying to connect to the server" << std::endl;
+        std::cout << "Thread " << std::this_thread::get_id() << " handling connection #" << connection_counter << std::endl;
         Sleep(10000);
 
         // Send the response back to the client
@@ -70,7 +73,7 @@ int main() {
         // Initializing Winsock
         WSADATA wsa_data;
 
-        if (WSAStartup(WINSOCK_VERSION, &wsa_data) != 0) {
+        if (WSAStartup(WINSOCK_VERS, &wsa_data) != 0) {
             throw std::runtime_error("Failed to initialize Winsock");
         }
 
@@ -108,8 +111,8 @@ int main() {
                 continue;
             }
 
-            // Handling the client request
-            HandleClient(client_socket);
+            // launching a new thread to handle the client request
+            std::thread(HandleClient, client_socket).detach();
         }
     }
     catch (const std::exception& e) {
