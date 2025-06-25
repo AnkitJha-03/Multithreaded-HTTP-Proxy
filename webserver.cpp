@@ -2,13 +2,43 @@
 #include <iostream>
 #include <thread>
 #include <atomic>
+#include <queue>
+#include <mutex>
+#include <condition_variable>
 
 const int PORT = 8080;
 const int WINSOCK_VERS = MAKEWORD(2,2);
 const int BUFFER_SIZE = 1024;
-const int PENDING_CONNECTIONS = 10;
+const int PENDING_CONNECTIONS = 2;
 
 std::atomic<int> connection_counter(0);
+
+// Thread pool related variables
+const int THREAD_POOL_SIZE = 2;
+std::queue<SOCKET> client_queue;
+std::mutex queue_mutex;
+std::condition_variable queue_cv;
+bool stop_pool = false;
+
+void HandleClient(SOCKET); // Forward declaration
+
+void WorkerThread() {
+    while (true) {
+        SOCKET client_socket;
+        {
+            std::unique_lock<std::mutex> lock(queue_mutex);
+            queue_cv.wait(lock, [] { return !client_queue.empty() || stop_pool; });
+            if (stop_pool && client_queue.empty()) {
+                return;
+            }
+            client_socket = client_queue.front();
+            client_queue.pop();
+        }
+
+        // Handle the client request
+        HandleClient(client_socket);
+    }
+}
 
 // Function to handle client requests
 void HandleClient(SOCKET client_socket) {
@@ -68,6 +98,10 @@ void HandleClient(SOCKET client_socket) {
 
 int main() {
     SOCKET server_socket = INVALID_SOCKET;
+    std::vector<std::thread> thread_pool;
+    for (int i = 0; i < THREAD_POOL_SIZE; i++) {
+        thread_pool.emplace_back(WorkerThread);
+    }
 
     try {
         // Initializing Winsock
@@ -110,9 +144,13 @@ int main() {
                 std::cerr << "Failed to accept client connection" << std::endl;
                 continue;
             }
-
-            // launching a new thread to handle the client request
-            std::thread(HandleClient, client_socket).detach();
+            
+            // Adding the client socket to the queue
+            {
+                std::unique_lock<std::mutex> lock(queue_mutex);
+                client_queue.push(client_socket);
+            }
+            queue_cv.notify_one();
         }
     }
     catch (const std::exception& e) {
@@ -121,6 +159,20 @@ int main() {
 
     // Cleanup
     std::cout << "Shutting down server..." << std::endl;
+
+    // Signal the worker threads to stop
+    {
+        std::unique_lock<std::mutex> lock(queue_mutex);
+        stop_pool = true;
+    }
+    queue_cv.notify_all();
+
+    for(auto & thread : thread_pool) {
+        if (thread.joinable()) {
+            thread.join();
+        }
+    }
+
     if (server_socket != INVALID_SOCKET) {
         closesocket(server_socket);
     }
