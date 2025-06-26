@@ -1,4 +1,5 @@
 #include "client_handler.h"
+#include "request_parser.h"
 #include <atomic>
 #include <iostream>
 #include <thread>
@@ -16,39 +17,10 @@ void HandleClient(SOCKET client_socket) {
       throw std::runtime_error("Error receiving data from client");
     }
 
-    // Check if the request is for the root path ("/")
-    bool is_root_path = (strstr(request, "GET / HTTP") != nullptr);
+    // Parse the request (will use cache internally)
+    std::string response = request_parser(request);
 
-    std::string response;
-
-    if (is_root_path) {
-      response =
-          "HTTP/1.1 200 OK\r\n"
-          "Content-Type: text/plain\r\n"
-          "\r\n"
-          "Server is running";
-    } else {
-      // Extracting the requested URL from the path
-      const char* path_start = strstr(request, "GET /") + 5;
-      const char* path_end = strchr(path_start, ' ');
-
-      if (path_start == nullptr || path_end == nullptr) {
-        response =
-            "HTTP/1.1 400 Bad Request\r\n"
-            "\r\n";
-      } else {
-        std::string url(path_start, path_end - path_start);
-
-        response =
-            "HTTP/1.1 301 Moved Permanently\r\n"
-            "Location: http://" +
-            url +
-            "\r\n"
-            "\r\n";
-      }
-    }
-
-    // connection connection_counters with a delay
+    // connection counters with a delay
     connection_counter++;
     std::cout << "Thread " << std::this_thread::get_id()
               << " handling connection #" << connection_counter << std::endl;

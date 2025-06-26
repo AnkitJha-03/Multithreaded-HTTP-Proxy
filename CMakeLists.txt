@@ -7,7 +7,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 # Include header directories
 include_directories(
     src/core
-    # src/net
+    src/net
     # src/security
 )
 
@@ -19,9 +19,8 @@ set(SOURCES
     src/core/thread_pool.cpp
     src/core/client_handler.cpp
 
-    # src/net/cache.cpp
-    # src/net/request_parser.cpp
-    # src/net/forwarder.cpp
+    src/net/request_parser.cpp
+    src/net/cache.cpp
 
     # src/security/blocklist.cpp
     # src/security/logger.cpp
@@ -32,3 +31,9 @@ add_executable(proxy_server ${SOURCES})
 
 # Link with Winsock2
 target_link_libraries(proxy_server ws2_32)
+
+# Instructions for building on Windows with MinGW
+# mkdir build
+# cd build
+# cmake -G "MinGW Makefiles" ..
+# cmake --build .
