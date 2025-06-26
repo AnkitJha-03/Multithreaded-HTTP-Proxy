@@ -1,5 +1,5 @@
-#include "core/server.h"
-#include "core/thread_pool.h"
+#include "core/server.hpp"
+#include "core/thread_pool.hpp"
 
 int main() {
     int PORT = 8080;

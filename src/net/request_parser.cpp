@@ -1,5 +1,5 @@
-#include "request_parser.h"
-#include "cache.h"
+#include "request_parser.hpp"
+#include "cache.hpp"
 #include <cstring>
 #include <mutex>
 
@@ -28,9 +28,20 @@ std::string request_parser(const char request[]) {
   }
 
   std::string url(path_start, path_end - path_start);
-  std::string cache_key = "GET_" + url;
+
+  // Normalize URL by removing http:// or https:// prefix
+  if (url.rfind("http://", 0) == 0) {
+    url = url.substr(7);  // remove "http://"
+  } else if (url.rfind("https://", 0) == 0) {
+    url = url.substr(8);  // remove "https://"
+  }
+  // Remove trailing slash
+  if (!url.empty() && url.back() == '/') {
+    url.pop_back();
+  }
 
   // Check cache first
+  std::string cache_key = "GET_" + url;
   {
     std::lock_guard<std::mutex> lock(cache_mutex);
     if (response_cache.contains(cache_key)) {

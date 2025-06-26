@@ -1,5 +1,5 @@
-#include "thread_pool.h"
-#include "client_handler.h"
+#include "thread_pool.hpp"
+#include "client_handler.hpp"
 
 ThreadPool::ThreadPool(int size) : stop(false) {
   for (int i = 0; i < size; i++) {
