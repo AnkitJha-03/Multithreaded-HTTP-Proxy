@@ -8,7 +8,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 include_directories(
     src/core
     src/net
-    # src/security
+    src/security
 )
 
 # List of all .cpp source files
@@ -22,7 +22,7 @@ set(SOURCES
     src/net/request_parser.cpp
     src/net/cache.cpp
 
-    # src/security/blocklist.cpp
+    src/security/blocklist.cpp
     # src/security/logger.cpp
 )
 

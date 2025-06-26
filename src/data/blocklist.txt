@@ -1,0 +1,3 @@
+# blocked domain :
+google.com
+example.com
