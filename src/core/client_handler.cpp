@@ -1,8 +1,10 @@
+#include "logger.hpp"
 #include "client_handler.hpp"
 #include "request_parser.hpp"
 #include <atomic>
 #include <iostream>
 #include <thread>
+#include <sstream>
 
 const int BUFFER_SIZE = 1024;
 std::atomic<int> connection_counter(0);
@@ -22,16 +24,18 @@ void HandleClient(SOCKET client_socket) {
 
     // connection counters with a delay
     connection_counter++;
-    std::cout << "Thread " << std::this_thread::get_id()
-              << " handling connection #" << connection_counter << std::endl;
+    std::ostringstream oss;
+    oss << "Thread " << std::this_thread::get_id()
+        << " handling connection #" << connection_counter;
+    Logger::info(oss.str());
     Sleep(10000);
 
     // Send the response back to the client
-    if (send(client_socket, response.c_str(), response.size(), 0) ==
-        SOCKET_ERROR) {
+    if (send(client_socket, response.c_str(), response.size(), 0) == SOCKET_ERROR) {
       throw std::runtime_error("Error sending response to client");
     }
   } catch (const std::exception& e) {
+    Logger::error(std::string("Exception in HandleClient: ") + e.what());
     std::cerr << "Error in HandleClient: " << e.what() << std::endl;
   }
 

@@ -1,0 +1,6 @@
+[2025-06-27 01:09:06] [INFO] Server started on port 8080
+[2025-06-27 01:09:12] [INFO] Thread 2 handling connection #1
+[2025-06-27 01:09:16] [INFO] Cache hit for URL: google.com
+[2025-06-27 01:09:16] [INFO] Thread 3 handling connection #2
+[2025-06-27 01:09:22] [INFO] Cache hit for URL: google.com
+[2025-06-27 01:09:22] [INFO] Thread 2 handling connection #3

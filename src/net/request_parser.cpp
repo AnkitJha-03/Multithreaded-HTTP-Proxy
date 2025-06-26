@@ -1,3 +1,4 @@
+#include "logger.hpp"
 #include "request_parser.hpp"
 #include "blocklist.hpp"
 #include "cache.hpp"
@@ -58,7 +59,7 @@ std::string request_parser(const char request[]) {
   {
     std::lock_guard<std::mutex> lock(cache_mutex);
     if (response_cache.contains(cache_key)) {
-      std::cout << "Cache hit for key: " << cache_key << std::endl;
+      Logger::info("Cache hit for URL: " + url);
       return response_cache.get(cache_key);
     }
   }

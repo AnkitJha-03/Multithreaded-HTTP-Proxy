@@ -1,3 +1,4 @@
+#include "logger.hpp"
 #include "server.hpp"
 #include <iostream>
 #include <stdexcept>
@@ -36,7 +37,7 @@ void Server::startListening() {
   if (listen(server_socket, PENDING_CONNECTIONS) == SOCKET_ERROR) {
     throw std::runtime_error("Failed to listen on socket");
   }
-  std::cout << "Server running on http://localhost:" << port << std::endl;
+  Logger::info("Server started on port " + std::to_string(port));
 }
 
 void Server::acceptConnections() {
@@ -49,15 +50,21 @@ void Server::acceptConnections() {
 }
 
 void Server::start() {
-  initializeWinsock();
-  createSocket();
-  bindSocket();
-  startListening();
-  acceptConnections();
+  try {
+    initializeWinsock();
+    createSocket();
+    bindSocket();
+    startListening();
+    acceptConnections();
+  } catch (const std::exception &e) {
+    Logger::error(std::string("Exception in Server: ") + e.what());
+    std::cerr << "Error in Server: " << e.what() << std::endl;
+    stop();
+  }
 }
 
 void Server::stop() {
-  std::cout << "Shutting down server..." << std::endl;
+  Logger::info("Shutting down server...");
 
   // stop the thread pool
   threadPool.end();

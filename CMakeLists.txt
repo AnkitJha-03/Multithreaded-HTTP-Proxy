@@ -23,7 +23,7 @@ set(SOURCES
     src/net/cache.cpp
 
     src/security/blocklist.cpp
-    # src/security/logger.cpp
+    src/security/logger.cpp
 )
 
 # Build the executable
